@@ -96,7 +96,7 @@ function Remove-IntuneWin32App {
                         $ParentSupersedences =  Get-IntuneWin32AppSupersedence -ID $Supersedence.targetId
                         $Supersedences_Table = $()
                         foreach( $ParentSupersedence in $ParentSupersedences) {
-                            if( ($ParentSupersedence.TargetType -eq "child") -and ($ParentSupersedence.targetId -ne $oldestVersionApp.id)) {
+                            if( ($ParentSupersedence.TargetType -eq "child") -and ($ParentSupersedence.targetId -ne $Win32AppID)) {
                                 $Supersedences_Table += $ParentSupersedence 
                             }
                         }

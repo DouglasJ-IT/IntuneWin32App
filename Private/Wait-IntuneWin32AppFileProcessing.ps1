@@ -33,6 +33,7 @@ function Wait-IntuneWin32AppFileProcessing {
             }
             "$($Stage)Failed" {
                 Write-Warning -Message "Intune service request for operation '$($Stage)' failed"
+                Write-Warning $GraphRequest
                 return $GraphRequest
             }
             "$($Stage)TimedOut" {
