@@ -566,7 +566,7 @@ function Add-IntuneWin32App {
                                 # Upload .intunewin file to Azure Storage blob
                                 if ($PSBoundParameters["UseAzCopy"]) {
                                     $ContentSize = [System.Math]::Round($Win32AppFileBody.size / 1MB, 2)
-                                    if ($ContentSize -lt 100) {
+                                    if ($ContentSize -lt 0) {  # make sure this only uses AzCopy
                                         Write-Verbose -Message "Content size is less than 100MB, falling back to using native method for file transfer"
                                         Invoke-AzureStorageBlobUpload -StorageUri $ContentVersionsFiles.azureStorageUri -FilePath $IntuneWinFilePath -Resource $FilesUri
                                     }
@@ -610,8 +610,10 @@ function Add-IntuneWin32App {
 
                                 # Create file commit request
                                 $CommitResource = "mobileApps/$($Win32MobileAppRequest.id)/microsoft.graph.win32LobApp/contentVersions/$($Win32MobileAppContentVersionRequest.id)/files/$($Win32MobileAppFileContentRequest.id)/commit"
+                                Write-Verbose "Commit Request $($IntuneWinFileEncryptionInfo)"
+                                Write-Verbose "JSON Commit Request $($IntuneWinFileEncryptionInfo | ConvertTo-Json)"
                                 $Win32AppFileCommitRequest = Invoke-IntuneGraphRequest -APIVersion "Beta" -Resource $CommitResource -Method "POST" -Body ($IntuneWinFileEncryptionInfo | ConvertTo-Json)
-
+                                Write-Verbose "Commit response $($Win32AppFileCommitRequest)"
                                 # Wait for Intune service to process the commit file request
                                 Write-Verbose -Message "Waiting for Intune service to process the commit file request"
                                 $CommitFileRequest = Wait-IntuneWin32AppFileProcessing -Stage "CommitFile" -Resource $FilesUri
@@ -619,6 +621,7 @@ function Add-IntuneWin32App {
                                 switch ($CommitFileRequest.uploadState) {
                                     "commitFileFailed" {
                                         Write-Warning -Message "Failed to create Win32 app, commit file request operation failed"
+                                        Write-Warning -Message "Failed commit request $($CommitFileRequest)"
                                     }
                                     "commitFileTimedOut" {
                                         Write-Warning -Message "Failed to create Win32 app, commit file request operation timed out"
